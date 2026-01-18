@@ -48,12 +48,13 @@ pipeline {
                                 set FLASK_APP=app\\api.py                          
                                 start flask run
 
-                                timeout 4
+                                //Tremendo trucazo de https://serverfault.com/questions/799879/how-can-i-sleep-in-a-windows-batch-file-within-a-non-interactive-session
+                                ping -n 4 127.0.0.1
 
                                 start java -jar C:\\Jenkins\\wiremock\\wiremock-standalone-3.13.2.jar --port 9090 --root-dir C:\\Jenkins\\agentes\\agent2\\wiremock
                                 set PYTHONPATH=%WORKSPACE%
 
-                                timeout 15
+                                ping -n 15 127.0.0.1
                                 
                                 pytest --junitxml=result-rest.xml test\\rest
                             '''
