@@ -7,7 +7,7 @@ pipeline {
         stage('Get Code') {
             steps {
                 // Obtener código del repo
-                git 'https://github.com/anieto-unir/helloworld.git'
+                git 'https://github.com/apastorsales/helloworld'
 	            echo WORKSPACE
                 bat 'dir'
                 stash name:'code', includes:'**'
@@ -29,10 +29,9 @@ pipeline {
                     steps {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                             unstash name:'code'
-                            sh '''
-                                ls -la
-                                export PYTHONPATH=${WORKSPACE}
-                                pytest --junitxml=result-unit.xml test/unit
+                            bat '''
+                                set PYTHONPATH=%WORKSPACE%
+                                pytest --junitxml=result-unit.xml test\\unit
                             '''
                             stash name:'unit-res', includes:'result-unit.xml'
                        }
@@ -45,14 +44,14 @@ pipeline {
                     steps {
                       catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
                         unstash name:'code'
-                        sh '''
-                            export FLASK_APP=app/api.py                          
+                        bat '''
+                            set FLASK_APP=app/api.py                          
                             flask run &
 
-                            java -jar /home/agent2/wiremock/wiremock-standalone-3.3.1.jar --port 9090 --root-dir /home/agent2/wiremock &
-                            export PYTHONPATH=${WORKSPACE}
+                            java -jar C:\\Jenkins\\wiremock\\wiremock-standalone-3.13.2.jar --port 9090 --root-dir C:\\Jenkins\\agentes\\agent2\\wiremock &
+                            set PYTHONPATH=%WORKSPACE%
                             
-                            pytest --junitxml=result-rest.xml test/rest
+                            pytest --junitxml=result-rest.xml test\\rest
                         '''
                       }
                       stash name:'rest-res', includes:'result-rest.xml'
