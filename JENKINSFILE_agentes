@@ -46,9 +46,9 @@ pipeline {
                         unstash name:'code'
                         bat '''
                             set FLASK_APP=app/api.py                          
-                            flask run &
+                            start flask run
 
-                            java -jar C:\\Jenkins\\wiremock\\wiremock-standalone-3.13.2.jar --port 9090 --root-dir C:\\Jenkins\\agentes\\agent2\\wiremock &
+                            start java -jar C:\\Jenkins\\wiremock\\wiremock-standalone-3.13.2.jar --port 9090 --root-dir C:\\Jenkins\\agentes\\agent2\\wiremock &
                             set PYTHONPATH=%WORKSPACE%
                             
                             pytest --junitxml=result-rest.xml test\\rest
