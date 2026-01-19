@@ -1,8 +1,10 @@
 def agentInfo() {
     bat '''
+        echo ============================
         echo WORKSPACE: %WORKSPACE%
         whoami
         hostname
+        echo ============================        
     '''
 }
 pipeline {
@@ -63,11 +65,10 @@ pipeline {
                             bat '''
                                 set FLASK_APP=app\\api.py                          
                                 start flask run
-
                                 
                                 ping -n 4 127.0.0.1
 
-                                start java -jar C:\\Jenkins\\wiremock\\wiremock-standalone-3.13.2.jar --port 9090 --root-dir C:\\Jenkins\\agentes\\agent2\\wiremock
+                                start java -jar C:\\Jenkins\\wiremock\\wiremock-standalone-3.13.2.jar --port 9090 --root-dir %WORKSPACE%\\test\\wiremock
                                 set PYTHONPATH=%WORKSPACE%
 
                                 ping -n 15 127.0.0.1
