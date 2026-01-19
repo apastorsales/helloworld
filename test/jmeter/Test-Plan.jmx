@@ -31,7 +31,7 @@
         </HTTPSamplerProxy>
         <hashTree/>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Substract">
-          <stringProp name="HTTPSampler.domain">127.0.0.8</stringProp>
+          <stringProp name="HTTPSampler.domain">127.0.0.1</stringProp>
           <stringProp name="HTTPSampler.port">5000</stringProp>
           <stringProp name="HTTPSampler.path">/calc/substract/5/4</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
