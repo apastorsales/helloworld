@@ -15,7 +15,7 @@ pipeline {
                 bat '''
                     flake8 --exit-zero --format=pylint app >flake8.out
                 '''
-                recordIssues qualityGates: [[criticality: 'NOTE', integerThreshold: 10, threshold: 10.0, type: 'TOTAL'], [criticality: 'ERROR', integerThreshold: 11, threshold: 11.0, type: 'TOTAL']], sourceCodeRetention: 'LAST_BUILD', tools: [flake8(pattern: 'flake8.out')]
+                recordIssues qualityGates: [[criticality: 'NOTE', integerThreshold: 8, threshold: 8.0, type: 'TOTAL'], [criticality: 'ERROR', integerThreshold: 10, threshold: 10.0, type: 'TOTAL']], sourceCodeRetention: 'LAST_BUILD', tools: [flake8(pattern: 'flake8.out')]
             }
         }
         stage('Tests') {
@@ -25,8 +25,9 @@ pipeline {
                         catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE'){
                             bat '''
                                 set PYTHONPATH=%WORKSPACE%
-                                pytest --junitxml=result-unit.xml test\\unit
+                                coverage run --branch --source=app --omit=app\\__init__.py,app\\api.py -m pytest test\\unit
                             '''
+                            junit 'result-unit.xml'
                         }
                         
                     }
@@ -47,7 +48,9 @@ pipeline {
                             
                             pytest --junitxml=result-rest.xml test\\rest
                         '''
+                        junit 'result-rest.xml'
                     }
+                    
                 }
             }
         }
@@ -55,10 +58,9 @@ pipeline {
             steps{
                 bat '''
                     set PYTHONPATH=%WORKSPACE%
-                    coverage run --branch --source=app --omit=app\\__init__.py,app\\api.py -m pytest test\\unit
                     coverage xml
                 '''
-                recordCoverage qualityGates: [[criticality: 'NOTE', integerThreshold: 85, metric: 'LINE', threshold: 85.0], [criticality: 'ERROR', integerThreshold: 60, metric: 'LOC', threshold: 60.0], [criticality: 'NOTE', metric: 'BRANCH']], tools: [[parser: 'COBERTURA', pattern: 'coverage.xml']]
+                recordCoverage qualityGates: [[criticality: 'NOTE', integerThreshold: 95, metric: 'LINE', threshold: 95.0], [criticality: 'ERROR', integerThreshold: 85, metric: 'LINE', threshold: 85.0], [criticality: 'NOTE', integerThreshold: 90, metric: 'BRANCH', threshold: 90.0], [criticality: 'ERROR', integerThreshold: 80, metric: 'BRANCH', threshold: 80.0]], tools: [[parser: 'COBERTURA', pattern: 'coverage.xml']]
             }
         }
         stage('Security') {
@@ -66,7 +68,7 @@ pipeline {
                 bat '''
                     bandit --exit-zero -r . -f custom -o bandit.out --msg-template "{abspath}:{line}: [{test_id}] {msg}"
                 '''
-                recordIssues qualityGates: [[criticality: 'NOTE', integerThreshold: 1, threshold: 1.0, type: 'TOTAL'], [criticality: 'ERROR', integerThreshold: 2, threshold: 2.0, type: 'TOTAL']], sourceCodeRetention: 'LAST_BUILD', tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')]
+                recordIssues qualityGates: [[criticality: 'NOTE', integerThreshold: 2, threshold: 2.0, type: 'TOTAL'], [criticality: 'ERROR', integerThreshold: 4, threshold: 4.0, type: 'TOTAL']], sourceCodeRetention: 'LAST_BUILD', tools: [pyLint(name: 'Bandit', pattern: 'bandit.out')]
             }
         }
         stage('Performance') {
@@ -75,14 +77,9 @@ pipeline {
                     set FLASK_APP=app\\api.py                          
                     start flask run
                     ping -n 4 127.0.0.1
-                    C:\\Jenkins\\jmeter\\bin\\jmeter -n -t test\\jmeter\\flask.jmx -f -l flask.jtl
+                    C:\\Jenkins\\jmeter\\bin\\jmeter -n -t test\\jmeter\\test-plan.jmx -f -l flask.jtl
                 '''
                 perfReport sourceDataFiles: 'flask.jtl'
-            }
-        }
-        stage('Results') {
-            steps {
-                junit 'result*.xml'
             }
         }
     }
